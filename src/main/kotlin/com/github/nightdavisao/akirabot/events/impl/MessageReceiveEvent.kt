@@ -1,5 +1,6 @@
 package com.github.nightdavisao.akirabot.events.impl
 
+import com.github.nightdavisao.akirabot.AkiraMiscConfig
 import com.github.nightdavisao.akirabot.events.DiscordEvent
 import com.github.nightdavisao.akirabot.utils.emote.Emotes
 import dev.kord.common.Color
@@ -12,14 +13,15 @@ import java.time.format.DateTimeFormatter
 
 class MessageReceiveEvent(private val client: Kord,
                           private val formatter: DateTimeFormatter,
-                          private val emotes: Emotes)
+                          private val emotes: Emotes,
+                          private val config: AkiraMiscConfig)
     : DiscordEvent<MessageCreateEvent> {
 
     override suspend fun executes(event: MessageCreateEvent) {
         val channel = event.message.channel
         val guild = event.getGuild()
 
-        if (channel.id.asString == "790308357713559582" && event.message.author?.id?.asString == "761931447207460864") {
+        if (channel.id.value == config.reportChannelId && event.message.author?.id?.value == config.helperId) {
             val embed = event.message.embeds.firstOrNull()
 
             if (embed != null) {

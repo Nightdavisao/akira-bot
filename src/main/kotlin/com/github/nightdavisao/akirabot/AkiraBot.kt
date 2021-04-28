@@ -52,7 +52,7 @@ class AkiraBot(private val config: AkiraConfig) {
             AkiraReactionEvent(this, ktor, emotes, config.miscConfig).also {
                 this.on(consumer = it::executes)
             }
-            MessageReceiveEvent(this, formatter, emotes).also {
+            MessageReceiveEvent(this, formatter, emotes, config.miscConfig).also {
                 this.on(consumer = it::executes)
             }
             RegisterUserReportEvent(emotes, database, config.miscConfig).also {
