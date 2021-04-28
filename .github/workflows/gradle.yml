@@ -32,30 +32,11 @@ jobs:
         name: Akira Bot (Fat Jar)
         # A file, directory or wildcard pattern that describes what to upload
         path: build/libs/akira-bot-1.0-SNAPSHOT-all.jar
-  pre-release:
-    name: "pre-release"
-    runs-on: "ubuntu-latest"
-
-    steps:
-      # ...
-      - name: Download a Build Artifact
-        uses: actions/download-artifact@v2.0.9
-        with:
-          # Artifact name
-          name: "Download Akira Fat Jar"
-          # Destination path
-          path: "akira-bot-1.0-SNAPSHOT-all.jar"
-      - name: Display structure of downloaded files
-        run: ls -R
-      - name: "Upload pre-release"
-        run: |
-          echo "done!"
-
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "Development Build"
-          files: |
-            akira-bot-1.0-SNAPSHOT-all.jar
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: |
+          build/libs/akira-bot-1.0-SNAPSHOT-all.jar
