@@ -1,0 +1,15 @@
+applicationId = 314869589504950274
+token = "bot token"
+
+[slashConfig]
+connectionType = "GATEWAY"
+guildIds = [ 297732013006389252 ]
+publicKey = "public key"
+serverPort = 80
+
+[miscConfig]
+ownerId = 272031079001620490
+supervisorRoleId = 351473717194522647
+emotesPath = "emotes.json"
+helperId = 761931447207460864
+reportChannelId = 790308357713559582
