@@ -32,3 +32,11 @@ jobs:
         name: Akira Bot (Fat Jar)
         # A file, directory or wildcard pattern that describes what to upload
         path: build/libs/akira-bot-1.0-SNAPSHOT-all.jar
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: |
+          build/libs/akira-bot-1.0-SNAPSHOT-all.jar
