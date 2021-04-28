@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -27,6 +28,11 @@ class UserReportCatcherTask(
     }
 
     override fun run() = runBlocking {
+        logger.info { "Deleting ALL entries in the user reports table" }
+        transaction(database) {
+            UserReport.deleteAll()
+        }
+
         val channel = client.getChannelOf<MessageChannel>(Snowflake(790308357713559582L))
 
         if (channel?.lastMessageId != null) {
@@ -37,43 +43,43 @@ class UserReportCatcherTask(
 
                     val reportReason = embed.title?.removePrefix("\uD83D\uDE93")
                         ?.trim()
-                    val approved = message.getReactors(ReactionEmoji.Unicode(emotes.approved))
-                        .toList()
-                        .filterNot { it.isBot }
-                        .firstOrNull()
 
-                    val denied = message.getReactors(ReactionEmoji.Unicode(emotes.denied))
-                        .toList()
-                        .filterNot { it.isBot }
-                        .firstOrNull()
+                    val reactions = message.reactions.map { reaction ->
+                        Pair(reaction.emoji, message.getReactors(reaction.emoji)
+                            .toList()
+                            .filterNot { it.isBot }.firstOrNull()
+                        )
+                    }
 
-                    val reportViewedBy = approved ?: denied
+                    val approved = reactions.find {
+                        it.first.mention == emotes.approved
+                    }?.second
+
+                    val denied = reactions.find {
+                        it.first.mention == emotes.denied
+                    }?.second
+
+                    val user = reactions.find { it.second != null }
+                        ?.second?.id?.value
 
                     val timestamp = message.timestamp.toEpochMilli()
 
-                    if (reportViewedBy != null) {
-                        logger.info { "reportViewedBy is not null! Checking this report already exists in database" }
-                        val alreadyExists = transaction(database) {
-                            UserReport.select {
-                                UserReport.messageId eq message.id.value
-                            }.firstOrNull()
-                        }
 
-                        if (reportReason != null && alreadyExists == null) {
-                            logger.info { "This report doesn't exists, inserting..." }
+                    if (reportReason != null) {
+                        logger.info { "This report doesn't exists, inserting..." }
 
-                            transaction(database) {
-                                UserReport.insert {
-                                    it[this.messageId] = message.id.value
-                                    it[this.reason] = reportReason
-                                    it[this.reportedAt] = timestamp
-                                    it[this.viewedBy] = reportViewedBy.id.value
-                                    it[this.approved] = approved != null
-                                    it[this.denied] = denied != null
-                                }
+                        transaction(database) {
+                            UserReport.insert {
+                                it[this.messageId] = message.id.value
+                                it[this.reason] = reportReason
+                                it[this.reportedAt] = timestamp
+                                it[this.viewedBy] = user
+                                it[this.approved] = approved != null
+                                it[this.denied] = denied != null
                             }
                         }
                     }
+
                 }
         }
     }
