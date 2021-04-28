@@ -33,12 +33,21 @@ jobs:
         # A file, directory or wildcard pattern that describes what to upload
         path: build/libs/akira-bot-1.0-SNAPSHOT-all.jar
   pre-release:
-    name: "Pre Release"
+    name: "pre-release"
     runs-on: "ubuntu-latest"
 
     steps:
       # ...
-      - name: "Build pre-release"
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v2.0.9
+        with:
+          # Artifact name
+          name: "Download Akira Fat Jar"
+          # Destination path
+          path: "akira-bot-1.0-SNAPSHOT-all.jar"
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: "Upload pre-release"
         run: |
           echo "done!"
 
@@ -49,4 +58,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            build/libs/akira-bot-1.0-SNAPSHOT-all.jar
+            akira-bot-1.0-SNAPSHOT-all.jar
