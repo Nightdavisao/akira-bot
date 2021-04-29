@@ -32,7 +32,7 @@ object SuspectUsersListCommand: SlashCommandDeclaration {
     }
 }
 
-class SuspectUsersListExecutor(val client: Kord, val database: Database, config: AkiraMiscConfig): AkiraCommand(config = config) {
+class SuspectUsersListExecutor(val client: Kord, val database: Database, config: AkiraMiscConfig): AkiraCommand(onlyOwner = true, config = config) {
     companion object : SlashCommandExecutorDeclaration(SuspectUsersListExecutor::class)
 
     override suspend fun executesAkira(context: SlashCommandContext, args: SlashCommandArguments) {
@@ -70,7 +70,7 @@ class SuspectUsersListExecutor(val client: Kord, val database: Database, config:
     }
 }
 
-class UpdateSuspectsListExecutor(private val executors: ExecutorService, val similiarNicknameCatcherTask: SimiliarNicknameCatcherTask, config: AkiraMiscConfig): AkiraCommand(config = config) {
+class UpdateSuspectsListExecutor(private val executors: ExecutorService, val similiarNicknameCatcherTask: SimiliarNicknameCatcherTask, config: AkiraMiscConfig): AkiraCommand(onlyOwner = true, config = config) {
     companion object : SlashCommandExecutorDeclaration(UpdateSuspectsListExecutor::class)
 
     override suspend fun executesAkira(context: SlashCommandContext, args: SlashCommandArguments) {
