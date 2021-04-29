@@ -55,7 +55,7 @@ class SimiliarNicknameCatcherTask(val client: Kord, val database: Database) : Ru
                         }.firstOrNull()
                     }
 
-                    if (alreadyExists != null) {
+                    if (alreadyExists == null) {
                         logger.info { "Inserting $userId to server joined users" }
 
                         transaction(database) {
