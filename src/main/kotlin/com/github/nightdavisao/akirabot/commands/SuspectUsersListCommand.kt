@@ -36,13 +36,14 @@ class SuspectUsersListExecutor(val client: Kord, val database: Database, config:
     companion object : SlashCommandExecutorDeclaration(SuspectUsersListExecutor::class)
 
     override suspend fun executesAkira(context: SlashCommandContext, args: SlashCommandArguments) {
+        context.defer()
         val serverJoinedUsers = transaction(database) {
-            ServerJoinedUser.selectAll().filterNotNull()
+            ServerJoinedUser.selectAll()
         }
 
         val usersIds = mutableListOf<Long>()
         transaction(database) {
-            serverJoinedUsers.forEach {
+            serverJoinedUsers.filterNotNull().forEach {
                 val userId = it[ServerJoinedUser.userId]
                 usersIds.add(userId)
             }
