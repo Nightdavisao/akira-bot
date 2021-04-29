@@ -5,6 +5,7 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.entity.channel.MessageChannel
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.apache.commons.text.similarity.JaroWinklerDistance
@@ -27,8 +28,10 @@ class SimiliarNicknameCatcherTask(val client: Kord, val database: Database) : Ru
             .toInstant(ZoneOffset.MIN)
             .toEpochMilli()
 
-        val channel = client.getChannelOf<MessageChannel>(Snowflake(837302436669423678L))
-        channel?.getMessagesBefore(channel.lastMessageId!!)?.collect { message ->
+        val channel = client.getChannelOf<MessageChannel>(Snowflake(303276994202828810L))
+        channel?.getMessagesBefore(channel.lastMessageId!!)
+            ?.filter { it.author?.id?.value == 297153970613387264L }
+            ?.collect { message ->
             val messageTimestamp = message.timestamp.toEpochMilli()
 
             if (messageTimestamp < twoWeeksBefore) {

@@ -2,6 +2,7 @@ package com.github.nightdavisao.akirabot
 
 import com.github.nightdavisao.akirabot.commands.*
 import com.github.nightdavisao.akirabot.commands.declaration.*
+import com.github.nightdavisao.akirabot.dao.schemas.ServerJoinedUser
 import com.github.nightdavisao.akirabot.events.impl.AkiraReactionEvent
 import com.github.nightdavisao.akirabot.events.impl.MessageReceiveEvent
 import com.github.nightdavisao.akirabot.events.impl.RegisterUserReportEvent
@@ -43,7 +44,8 @@ class AkiraBot(private val config: AkiraConfig) {
         // Criar tabela se não existir
         transaction(database) {
             SchemaUtils.create(
-                UserReport
+                UserReport,
+                ServerJoinedUser
             )
         }
         val fixedExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2)
