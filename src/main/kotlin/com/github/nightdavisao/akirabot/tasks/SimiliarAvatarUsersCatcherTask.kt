@@ -5,6 +5,7 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.entity.channel.MessageChannel
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
@@ -67,7 +68,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
                             }
                         } else {
                             logger.info { "No more need to collect" }
-                            return@collect
+                            cancel()
                         }
                     }
                 }
