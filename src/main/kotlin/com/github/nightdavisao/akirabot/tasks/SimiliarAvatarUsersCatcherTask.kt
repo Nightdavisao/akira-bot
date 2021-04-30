@@ -6,9 +6,7 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.entity.channel.MessageChannel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -25,59 +23,56 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
     private val logger = KotlinLogging.logger { }
 
     override fun run() = runBlocking {
-        /* val scopeJob = SupervisorJob() + Dispatchers.IO
-        val scope = CoroutineScope(scopeJob)
-        withContext(scope.coroutineContext) {
-            val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
-                .minusWeeks(2)
-                .toInstant(ZoneOffset.MIN)
-                .toEpochMilli()
 
-            val channel = client.getChannelOf<MessageChannel>(Snowflake(303276994202828810L))
-            channel?.getMessagesBefore(channel.lastMessageId!!)
-                ?.flowOn(scopeJob)
-                ?.filter { it.author?.id?.value == 297153970613387264L }
-                ?.collect { message ->
-                    val messageTimestamp = message.timestamp.toEpochMilli()
+        val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
+            .minusWeeks(2)
+            .toInstant(ZoneOffset.MIN)
+            .toEpochMilli()
 
-                    if (messageTimestamp < twoWeeksBefore) {
-                        logger.info { "End of joined guild messages" }
-                        this.cancel()
-                    }
+        val channel = client.getChannelOf<MessageChannel>(Snowflake(303276994202828810L))
+        channel?.getMessagesBefore(channel.lastMessageId!!)
+            ?.filter { it.author?.id?.value == 297153970613387264L }
+            ?.onEach { message ->
+                val messageTimestamp = message.timestamp.toEpochMilli()
 
-                    val embed = message.embeds.firstOrNull()
+                if (messageTimestamp < twoWeeksBefore) {
+                    logger.info { "End of joined guild messages" }
+                    this.cancel()
+                }
 
-                    if (embed != null) {
-                        val title = embed.title?.removePrefix("\uD83D\uDC4B")
-                            ?.trim()
-                        val userId = embed.footer?.text?.removePrefix("ID do usuário: ")
-                            ?.trim()
-                            ?.toLong()
+                val embed = message.embeds.firstOrNull()
 
-                        if (title == "Bem-vindo(a)!" && userId != null) {
-                            val alreadyExists = transaction(database) {
-                                ServerJoinedUser.select {
-                                    ServerJoinedUser.userId eq userId
-                                }.firstOrNull()
-                            }
+                if (embed != null) {
+                    val title = embed.title?.removePrefix("\uD83D\uDC4B")
+                        ?.trim()
+                    val userId = embed.footer?.text?.removePrefix("ID do usuário: ")
+                        ?.trim()
+                        ?.toLong()
 
-                            if (alreadyExists == null) {
-                                logger.info { "Inserting $userId to server joined users" }
+                    if (title == "Bem-vindo(a)!" && userId != null) {
+                        val alreadyExists = transaction(database) {
+                            ServerJoinedUser.select {
+                                ServerJoinedUser.userId eq userId
+                            }.firstOrNull()
+                        }
 
-                                transaction(database) {
-                                    ServerJoinedUser.insert {
-                                        it[this.userId] = userId
-                                        it[this.timestamp] = messageTimestamp
-                                    }
+                        if (alreadyExists == null) {
+                            logger.info { "Inserting $userId to server joined users" }
+
+                            transaction(database) {
+                                ServerJoinedUser.insert {
+                                    it[this.userId] = userId
+                                    it[this.timestamp] = messageTimestamp
                                 }
-                            } else {
-                                logger.info { "No more need to collect" }
-                                this.cancel()
                             }
+                        } else {
+                            logger.info { "No more need to collect" }
+                            this.cancel()
                         }
                     }
                 }
-        } */
+            }
+
 
         startSendingMessages()
     }
