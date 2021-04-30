@@ -14,7 +14,6 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.lang.Runnable
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -25,9 +24,9 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
     private val logger = KotlinLogging.logger { }
 
     override fun run() = runBlocking {
-        val scopeJob = SupervisorJob()
+        val scopeJob = SupervisorJob() + Dispatchers.IO
         val scope = CoroutineScope(scopeJob)
-        scope.async {
+        withContext(scope.coroutineContext) {
             val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
                 .minusWeeks(2)
                 .toInstant(ZoneOffset.MIN)
@@ -41,7 +40,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
 
                     if (messageTimestamp < twoWeeksBefore) {
                         logger.info { "End of joined guild messages" }
-                        return@collect
+                        this.cancel()
                     }
 
                     val embed = message.embeds.firstOrNull()
@@ -76,7 +75,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
                         }
                     }
                 }
-        }.await()
+        }
 
         startSendingMessages()
         return@runBlocking
