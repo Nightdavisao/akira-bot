@@ -25,7 +25,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
     private val logger = KotlinLogging.logger { }
 
     override fun run() = runBlocking {
-        val scopeJob = Job()
+        val scopeJob = SupervisorJob()
         val scope = CoroutineScope(scopeJob)
         scope.async {
             val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
