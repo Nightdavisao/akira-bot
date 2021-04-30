@@ -25,7 +25,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
     private val logger = KotlinLogging.logger { }
 
     override fun run() = runBlocking {
-        launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
                 .minusWeeks(2)
                 .toInstant(ZoneOffset.MIN)
