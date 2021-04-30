@@ -14,9 +14,12 @@ import com.github.nightdavisao.akirabot.utils.emote.Emotes
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kord.core.behavior.ban
+import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
 import net.perfectdreams.discordinteraktions.InteractionsServer
 import net.perfectdreams.discordinteraktions.commands.CommandManager
 import net.perfectdreams.discordinteraktions.kord.installDiscordInteraKTions
@@ -62,6 +65,31 @@ class AkiraBot(private val config: AkiraConfig) {
                 this.on(consumer = it::executes)
             }
         }
+        client.on<MessageCreateEvent> {
+            val message = this.message
+
+            if (message.author?.id?.value == config.miscConfig.ownerId) {
+                if (message.content.trim().startsWith("!!banusers")) {
+                    val attach = message.attachments.firstOrNull()
+                    if (attach != null) {
+                        val text = ktor.get<String>(attach.url)
+                        val userIds = text.split("\n").first()
+                            .substringAfter("->")
+                            .trim()
+                            .split(", ")
+                            .map { it.toLong() }
+
+                        for (id in userIds) {
+                            this.getGuild()?.ban(Snowflake(id)) {
+                                reason = "Self-bot"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
         val userReportCatcherTask = UserReportCatcherTask(client, database, emotes)
         val similiarNicknameCatcherTask = SimiliarAvatarUsersCatcherTask(client, database)
         //fixedExecutor.execute(userReportCatcherTask)
