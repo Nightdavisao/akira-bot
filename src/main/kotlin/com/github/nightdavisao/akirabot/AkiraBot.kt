@@ -67,24 +67,29 @@ class AkiraBot(private val config: AkiraConfig) {
         }
         client.on<MessageCreateEvent> {
             val message = this.message
+            val guild = this.getGuild()
 
             if (message.author?.id?.value == config.miscConfig.ownerId) {
                 if (message.content.trim().startsWith("!!banusers")) {
-                    val attach = message.attachments.firstOrNull()
-                    if (attach != null) {
-                        val text = ktor.get<String>(attach.url)
-                        val userIds = text.split("\n").first()
-                            .substringAfter("->")
-                            .trim()
-                            .split(", ")
-                            .map { it.toLong() }
+                    val attachUrl = message.content.removePrefix("!!banusers")
+                        .trim()
+                    val text = ktor.get<String>(attachUrl)
+                    val userIds = text.split("\n").first()
+                        .substringAfter("->")
+                        .trim()
+                        .split(", ")
+                        .map { it.toLong() }
 
-                        for (id in userIds) {
-                            this.getGuild()?.ban(Snowflake(id)) {
+                    for (id in userIds) {
+                        val snowflake = Snowflake(id)
+                        val member = guild?.getMemberOrNull(snowflake)
+                        if (member != null) {
+                            guild.ban(snowflake) {
                                 reason = "Self-bot"
                             }
                         }
                     }
+                    message.channel.createMessage("Terminei meu trabalho.")
                 }
             }
         }
@@ -104,14 +109,15 @@ class AkiraBot(private val config: AkiraConfig) {
                 applicationId
             )
         } else if (config.slashConfig.connectionType == AkiraConnection.WEBSERVER
-            && config.slashConfig.serverPort != null) {
+            && config.slashConfig.serverPort != null
+        ) {
 
-                interactions = InteractionsServer(
-                    applicationId = config.applicationId,
-                    publicKey = config.slashConfig.publicKey,
-                    token = config.token,
-                    port = config.slashConfig.serverPort
-                )
+            interactions = InteractionsServer(
+                applicationId = config.applicationId,
+                publicKey = config.slashConfig.publicKey,
+                token = config.token,
+                port = config.slashConfig.serverPort
+            )
 
             interactions.commandManager
         } else {
@@ -123,9 +129,14 @@ class AkiraBot(private val config: AkiraConfig) {
             register(DriveImageRetrieverCommand, DriveImageRetrieverExecutor(ktor, config.miscConfig))
             register(RandomCatCommand, RandomCatExecutor(ktor, config.miscConfig))
             register(SnowflakeTimestampCommand, SnowflakeTimestampExecutor(formatter, config.miscConfig))
-            register(ReportStatsCommand, ViewedReportStatsExecutor(client, database, emotes, config.miscConfig),
-                UpdateReportStatsExecutor(fixedExecutor, userReportCatcherTask, config.miscConfig))
-            register(SuspectUsersListCommand, UpdateSuspectsListExecutor(fixedExecutor, similiarNicknameCatcherTask, config.miscConfig))
+            register(
+                ReportStatsCommand, ViewedReportStatsExecutor(client, database, emotes, config.miscConfig),
+                UpdateReportStatsExecutor(fixedExecutor, userReportCatcherTask, config.miscConfig)
+            )
+            register(
+                SuspectUsersListCommand,
+                UpdateSuspectsListExecutor(fixedExecutor, similiarNicknameCatcherTask, config.miscConfig)
+            )
         }
 
 
