@@ -7,7 +7,7 @@ import com.github.nightdavisao.akirabot.events.impl.AkiraReactionEvent
 import com.github.nightdavisao.akirabot.events.impl.MessageReceiveEvent
 import com.github.nightdavisao.akirabot.events.impl.RegisterUserReportEvent
 import com.github.nightdavisao.akirabot.dao.schemas.UserReport
-import com.github.nightdavisao.akirabot.tasks.SimiliarNicknameCatcherTask
+import com.github.nightdavisao.akirabot.tasks.SimiliarAvatarUsersCatcherTask
 import com.github.nightdavisao.akirabot.tasks.UserReportCatcherTask
 import com.github.nightdavisao.akirabot.utils.emote.EmoteManagerImpl
 import com.github.nightdavisao.akirabot.utils.emote.Emotes
@@ -63,7 +63,7 @@ class AkiraBot(private val config: AkiraConfig) {
             }
         }
         val userReportCatcherTask = UserReportCatcherTask(client, database, emotes)
-        val similiarNicknameCatcherTask = SimiliarNicknameCatcherTask(client, database)
+        val similiarNicknameCatcherTask = SimiliarAvatarUsersCatcherTask(client, database)
         //fixedExecutor.execute(userReportCatcherTask)
 
         // De qualquer forma, o bot ainda vai iniciar uma conexão ao gateway do Discord
@@ -97,8 +97,7 @@ class AkiraBot(private val config: AkiraConfig) {
             register(SnowflakeTimestampCommand, SnowflakeTimestampExecutor(formatter, config.miscConfig))
             register(ReportStatsCommand, ViewedReportStatsExecutor(client, database, emotes, config.miscConfig),
                 UpdateReportStatsExecutor(fixedExecutor, userReportCatcherTask, config.miscConfig))
-            register(SuspectUsersListCommand, SuspectUsersListExecutor(client, database, config.miscConfig),
-                UpdateSuspectsListExecutor(fixedExecutor, similiarNicknameCatcherTask, config.miscConfig))
+            register(SuspectUsersListCommand, UpdateSuspectsListExecutor(fixedExecutor, similiarNicknameCatcherTask, config.miscConfig))
         }
 
 
