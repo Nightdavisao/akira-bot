@@ -104,7 +104,9 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
 
         val matchingUsers = getMatchingUsersWithAvatarHashes(userList)
 
-        matchingUsers.forEach { (key, users) ->
+        matchingUsers
+            .filter { it.value.size > 1 }
+            .forEach { (key, users) ->
             val text = buildString {
                 this.append("$key -> ${users.joinToString(", ") { it.id.toString() }}\n")
                 this.append(users.joinToString(", ") { it.tag } + "\n")
