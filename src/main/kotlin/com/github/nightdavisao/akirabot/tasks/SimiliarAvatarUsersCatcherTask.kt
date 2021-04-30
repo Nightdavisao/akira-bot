@@ -8,6 +8,7 @@ import dev.kord.core.entity.channel.MessageChannel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -24,7 +25,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
     private val logger = KotlinLogging.logger { }
 
     override fun run() = runBlocking {
-        val scopeJob = SupervisorJob() + Dispatchers.IO
+        /* val scopeJob = SupervisorJob() + Dispatchers.IO
         val scope = CoroutineScope(scopeJob)
         withContext(scope.coroutineContext) {
             val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
@@ -34,6 +35,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
 
             val channel = client.getChannelOf<MessageChannel>(Snowflake(303276994202828810L))
             channel?.getMessagesBefore(channel.lastMessageId!!)
+                ?.flowOn(scopeJob)
                 ?.filter { it.author?.id?.value == 297153970613387264L }
                 ?.collect { message ->
                     val messageTimestamp = message.timestamp.toEpochMilli()
@@ -75,10 +77,9 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
                         }
                     }
                 }
-        }
+        } */
 
         startSendingMessages()
-        return@runBlocking
     }
 
     @OptIn(ExperimentalStdlibApi::class)
