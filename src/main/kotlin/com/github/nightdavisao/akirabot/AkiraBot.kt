@@ -96,7 +96,7 @@ class AkiraBot(private val config: AkiraConfig) {
 
 
         val userReportCatcherTask = UserReportCatcherTask(client, database, emotes)
-        val similiarNicknameCatcherTask = SimiliarAvatarUsersCatcherTask(client, database)
+        val similiarNicknameCatcherTask = SimiliarAvatarUsersCatcherTask(client, formatter)
         //fixedExecutor.execute(userReportCatcherTask)
 
         // De qualquer forma, o bot ainda vai iniciar uma conexão ao gateway do Discord

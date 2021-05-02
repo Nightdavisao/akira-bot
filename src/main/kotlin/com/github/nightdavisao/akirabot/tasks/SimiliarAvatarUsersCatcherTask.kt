@@ -1,124 +1,54 @@
 package com.github.nightdavisao.akirabot.tasks
 
 import com.github.nightdavisao.akirabot.dao.schemas.ServerJoinedUser
+import com.github.nightdavisao.akirabot.utils.emote.Emotes
+import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.MessageChannel
+import dev.kord.core.live.live
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import mu.KotlinLogging
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
-class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val database: Database) : Runnable {
-    private val localTimeDate = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
-    private val logger = KotlinLogging.logger { }
-
-    override fun run() = runBlocking {
-
-        val twoWeeksBefore = localTimeDate.with(LocalTime.MIN)
-            .minusWeeks(2)
-            .toInstant(ZoneOffset.MIN)
-            .toEpochMilli()
-
-        val channel = client.getChannelOf<MessageChannel>(Snowflake(303276994202828810L))
-        channel?.getMessagesBefore(channel.lastMessageId!!)
-            ?.filter { it.author?.id?.value == 297153970613387264L }
-            ?.onEach { message ->
-                val messageTimestamp = message.timestamp.toEpochMilli()
-
-                if (messageTimestamp < twoWeeksBefore) {
-                    logger.info { "End of joined guild messages" }
-                    this.cancel()
-                }
-
-                val embed = message.embeds.firstOrNull()
-
-                if (embed != null) {
-                    val title = embed.title?.removePrefix("\uD83D\uDC4B")
-                        ?.trim()
-                    val userId = embed.footer?.text?.removePrefix("ID do usuário: ")
-                        ?.trim()
-                        ?.toLong()
-
-                    if (title == "Bem-vindo(a)!" && userId != null) {
-                        val alreadyExists = transaction(database) {
-                            ServerJoinedUser.select {
-                                ServerJoinedUser.userId eq userId
-                            }.firstOrNull()
-                        }
-
-                        if (alreadyExists == null) {
-                            logger.info { "Inserting $userId to server joined users" }
-
-                            transaction(database) {
-                                ServerJoinedUser.insert {
-                                    it[this.userId] = userId
-                                    it[this.timestamp] = messageTimestamp
-                                }
-                            }
-                        } else {
-                            logger.info { "No more need to collect" }
-                            this.cancel()
-                        }
-                    }
-                }
-            }
-
-
-        startSendingMessages()
-    }
-
-    @OptIn(ExperimentalStdlibApi::class)
-    private suspend fun startSendingMessages() = withContext(Dispatchers.IO) {
+class SimiliarAvatarUsersCatcherTask(
+    private val client: Kord,
+    private val formatter: DateTimeFormatter
+) : Runnable {
+    @OptIn(KordPreview::class)
+    override fun run() = runBlocking(Dispatchers.IO) {
+        val guild = client.getGuild(Snowflake(297732013006389252L))
         val testChannel = client.getChannelOf<MessageChannel>(Snowflake(837744246886629436L))
             ?.asChannelOrNull()
 
-        val usersIds = transaction(database) {
-            ServerJoinedUser.selectAll()
-                .filterNotNull()
-                .map { it[ServerJoinedUser.userId] }
-        }
+        guild?.members
+            ?.toList()
+            ?.sortedByDescending { it.id.timeStamp.epochSecond }
+            ?.groupBy { it.data.avatar }
+            ?.filter { it.value.size > 1 }
+            ?.forEach { (avatarHash, members) ->
+                val textLog = buildString {
+                    this.append("[$avatarHash] ${members.size} membros com mesmo hash de avatar\n")
+                    this.append("ID do usuário - (tag do usuário, data de criação da conta)\n")
+                    members.forEach {
+                        this.append("${it.id.value} - (${it.tag}, ${formatter.format(it.id.timeStamp)})\n")
+                    }
+                }
 
-        val userList = buildList {
-            usersIds.forEach {
-                val user = client.getUser(Snowflake(it))
-                if (user != null && user.avatar.data.avatar != null)
-                    this.add(
-                        UserHolder(
-                            user.id.value,
-                            user.tag,
-                            user.avatar.data.avatar!!
-                        )
-                    )
+                testChannel?.createMessage {
+                    content = "$avatarHash"
+                    addFile("log.txt", textLog.byteInputStream())
+                }
             }
-        }
-
-        userList.groupBy { it.avatarHash }
-            .filter { it.value.size > 1 }
-            .forEach { (key, users) ->
-            val text = buildString {
-                this.append("$key -> ${users.joinToString(", ") { it.id.toString() }}\n")
-                this.append(users.joinToString(", ") { it.tag } + "\n")
-            }
-            testChannel?.createMessage {
-                content = "Log $key"
-                addFile("log.txt", text.byteInputStream())
-            }
-        }
+        return@runBlocking
     }
 }
-
-data class UserHolder(
-    val id: Long,
-    val tag: String,
-    val avatarHash: String
-)
