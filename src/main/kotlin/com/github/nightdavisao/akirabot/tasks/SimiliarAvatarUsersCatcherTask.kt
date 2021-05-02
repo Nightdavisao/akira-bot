@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -38,26 +39,27 @@ class SimiliarAvatarUsersCatcherTask(
         guild?.withStrategy(EntitySupplyStrategy.rest)
             ?.members
             ?.collect {
-            logger.info { "Collecting $it" }
-            membersList.add(it)
-        }
-        membersList.sortedByDescending { it.id.timeStamp.epochSecond }
-            .groupBy { it.data.avatar }
-            .filter { it.value.size > 1 }
-            .forEach { (avatarHash, members) ->
-                val textLog = buildString {
+                logger.info { "Collecting $it" }
+                membersList.add(it)
+            }
+        val textLog = buildString {
+            membersList.asSequence()
+                .sortedByDescending { it.id.timeStamp.epochSecond }
+                .groupBy { it.data.avatar }
+                .filter { it.value.size > 1 }
+                .toList().sortedByDescending { it.second.size }.toList().toMap()
+                .forEach { (avatarHash, members) ->
                     this.append("[$avatarHash] ${members.size} membros com mesmo hash de avatar\n")
                     this.append("ID do usuário - (tag do usuário, data de criação da conta)\n")
                     members.forEach {
                         this.append("${it.id.value} - (${it.tag}, ${formatter.format(it.id.timeStamp)})\n")
                     }
                 }
-
-                testChannel?.createMessage {
-                    content = "$avatarHash"
-                    addFile("log.txt", textLog.byteInputStream())
-                }
-            }
+        }
+        testChannel?.createMessage {
+            content = "Log"
+            addFile("log.txt", textLog.byteInputStream(Charset.defaultCharset()))
+        }
         return@runBlocking
     }
 }
