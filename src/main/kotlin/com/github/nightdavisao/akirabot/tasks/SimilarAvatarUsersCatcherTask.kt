@@ -15,7 +15,7 @@ import mu.KotlinLogging
 import java.nio.charset.Charset
 import java.time.format.DateTimeFormatter
 
-class SimiliarAvatarUsersCatcherTask(
+class SimilarAvatarUsersCatcherTask(
     private val client: Kord,
     private val formatter: DateTimeFormatter
 ) : Runnable {

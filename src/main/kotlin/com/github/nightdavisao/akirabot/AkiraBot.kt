@@ -7,7 +7,7 @@ import com.github.nightdavisao.akirabot.events.impl.AkiraReactionEvent
 import com.github.nightdavisao.akirabot.events.impl.MessageReceiveEvent
 import com.github.nightdavisao.akirabot.events.impl.RegisterUserReportEvent
 import com.github.nightdavisao.akirabot.dao.schemas.UserReport
-import com.github.nightdavisao.akirabot.tasks.SimiliarAvatarUsersCatcherTask
+import com.github.nightdavisao.akirabot.tasks.SimilarAvatarUsersCatcherTask
 import com.github.nightdavisao.akirabot.tasks.UserReportCatcherTask
 import com.github.nightdavisao.akirabot.utils.emote.EmoteManagerImpl
 import com.github.nightdavisao.akirabot.utils.emote.Emotes
@@ -17,7 +17,6 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.ban
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
-import dev.kord.gateway.Intent
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
 import io.ktor.client.*
@@ -105,7 +104,7 @@ class AkiraBot(private val config: AkiraConfig) {
 
 
         val userReportCatcherTask = UserReportCatcherTask(client, database, emotes)
-        val similiarNicknameCatcherTask = SimiliarAvatarUsersCatcherTask(client, formatter)
+        val similiarNicknameCatcherTask = SimilarAvatarUsersCatcherTask(client, formatter)
         //fixedExecutor.execute(userReportCatcherTask)
 
         // De qualquer forma, o bot ainda vai iniciar uma conexão ao gateway do Discord

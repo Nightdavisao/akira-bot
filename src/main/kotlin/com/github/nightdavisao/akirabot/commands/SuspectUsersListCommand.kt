@@ -1,7 +1,7 @@
 package com.github.nightdavisao.akirabot.commands
 
 import com.github.nightdavisao.akirabot.AkiraMiscConfig
-import com.github.nightdavisao.akirabot.tasks.SimiliarAvatarUsersCatcherTask
+import com.github.nightdavisao.akirabot.tasks.SimilarAvatarUsersCatcherTask
 import net.perfectdreams.discordinteraktions.commands.SlashCommandArguments
 import net.perfectdreams.discordinteraktions.context.SlashCommandContext
 import net.perfectdreams.discordinteraktions.declarations.slash.SlashCommandDeclaration
@@ -21,7 +21,7 @@ object SuspectUsersListCommand: SlashCommandDeclaration {
 }
 
 class UpdateSuspectsListExecutor(private val executors: ExecutorService,
-                                 private val similiarNicknameCatcherTask: SimiliarAvatarUsersCatcherTask,
+                                 private val similiarNicknameCatcherTask: SimilarAvatarUsersCatcherTask,
                                  config: AkiraMiscConfig): AkiraCommand(onlyOwner = true, config = config) {
     companion object : SlashCommandExecutorDeclaration(UpdateSuspectsListExecutor::class)
 
