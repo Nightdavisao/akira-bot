@@ -46,7 +46,7 @@ class AkiraBot(private val config: AkiraConfig) {
         EmoteManagerImpl(File(config.miscConfig.emotesPath).readText())
     )
 
-    @OptIn(PrivilegedIntent::class)
+    @OptIn(PrivilegedIntent::class, dev.kord.common.annotation.KordPreview::class)
     suspend fun start() {
         // Criar tabela se não existir
         transaction(database) {
@@ -59,7 +59,9 @@ class AkiraBot(private val config: AkiraConfig) {
 
         val applicationId = Snowflake(config.applicationId)
         val client = Kord(config.token) {
-            intents = Intents(Intent.GuildMembers)
+            intents = Intents {
+                + Intents.all
+            }
         }
             .apply {
             AkiraReactionEvent(this, ktor, emotes, config.miscConfig).also {
