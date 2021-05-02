@@ -102,9 +102,7 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
             }
         }
 
-        val matchingUsers = getMatchingUsersWithAvatarHashes(userList)
-
-        matchingUsers
+        userList.groupBy { it.avatarHash }
             .filter { it.value.size > 1 }
             .forEach { (key, users) ->
             val text = buildString {
@@ -115,28 +113,6 @@ class SimiliarAvatarUsersCatcherTask(private val client: Kord, private val datab
                 content = "Log $key"
                 addFile("log.txt", text.byteInputStream())
             }
-        }
-    }
-
-
-    companion object {
-        fun getMatchingUsersWithAvatarHashes(list: List<UserHolder>): Map<String, MutableList<UserHolder>> {
-            val mutableMap = mutableMapOf<String, MutableList<UserHolder>>()
-
-            for (element in list) {
-                val iterator = list.listIterator()
-                while (iterator.hasNext()) {
-                    val iter = iterator.next()
-                    if (element.avatarHash == iter.avatarHash) {
-                        val listFromMap = mutableMap[element.avatarHash]
-                        if (listFromMap == null) {
-                            mutableMap[element.avatarHash] = mutableListOf()
-                        }
-                        mutableMap[element.avatarHash]?.add(iter)
-                    }
-                }
-            }
-            return mutableMap
         }
     }
 }
