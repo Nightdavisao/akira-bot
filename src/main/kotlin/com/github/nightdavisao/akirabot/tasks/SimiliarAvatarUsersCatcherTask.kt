@@ -10,6 +10,7 @@ import dev.kord.core.entity.Member
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.live.live
+import dev.kord.core.supplier.EntitySupplyStrategy
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import mu.KotlinLogging
@@ -34,7 +35,9 @@ class SimiliarAvatarUsersCatcherTask(
             ?.asChannelOrNull()
         val membersList = mutableListOf<Member>()
 
-        guild?.members?.collect {
+        guild?.withStrategy(EntitySupplyStrategy.rest)
+            ?.members
+            ?.collect {
             logger.info { "Collecting $it" }
             membersList.add(it)
         }
