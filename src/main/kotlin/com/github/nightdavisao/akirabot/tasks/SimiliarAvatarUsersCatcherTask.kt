@@ -1,26 +1,18 @@
 package com.github.nightdavisao.akirabot.tasks
 
-import com.github.nightdavisao.akirabot.dao.schemas.ServerJoinedUser
-import com.github.nightdavisao.akirabot.utils.emote.Emotes
 import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.entity.Member
-import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.MessageChannel
-import dev.kord.core.live.live
 import dev.kord.core.supplier.EntitySupplyStrategy
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.charset.Charset
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 class SimiliarAvatarUsersCatcherTask(
