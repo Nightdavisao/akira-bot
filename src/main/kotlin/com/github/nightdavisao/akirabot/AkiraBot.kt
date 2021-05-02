@@ -17,6 +17,9 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.ban
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
+import dev.kord.gateway.Intent
+import dev.kord.gateway.Intents
+import dev.kord.gateway.PrivilegedIntent
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -43,6 +46,7 @@ class AkiraBot(private val config: AkiraConfig) {
         EmoteManagerImpl(File(config.miscConfig.emotesPath).readText())
     )
 
+    @OptIn(PrivilegedIntent::class)
     suspend fun start() {
         // Criar tabela se não existir
         transaction(database) {
@@ -54,7 +58,10 @@ class AkiraBot(private val config: AkiraConfig) {
         val fixedExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2)
 
         val applicationId = Snowflake(config.applicationId)
-        val client = Kord(config.token).apply {
+        val client = Kord(config.token) {
+            intents = Intents(Intent.GuildMembers)
+        }
+            .apply {
             AkiraReactionEvent(this, ktor, emotes, config.miscConfig).also {
                 this.on(consumer = it::executes)
             }
