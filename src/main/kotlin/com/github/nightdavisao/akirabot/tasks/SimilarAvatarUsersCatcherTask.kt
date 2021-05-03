@@ -39,17 +39,19 @@ class SimilarAvatarUsersCatcherTask(
                 .sortedByDescending { it.id.timeStamp.epochSecond }
                 .groupBy { it.data.avatar }
                 .filter { it.value.size > 1 }
-                .toList().sortedByDescending { it.second.size }.toList().toMap()
+                .toList()
+                .sortedByDescending { it.second.size }
+                .toList().toMap()
                 .forEach { (avatarHash, members) ->
-                    this.append("[$avatarHash] ${members.size} membros com mesmo hash de avatar\n")
-                    this.append("ID do usuário - (tag do usuário, data de criação da conta)\n")
+                    this.append("[${avatarHash ?: "sem avatar"}] ${members.size} membros com mesmo hash de avatar\n")
+                    this.append("ID do usuário — (tag do usuário, data de criação da conta)\n")
                     members.forEach {
-                        this.append("${it.id.value} - (${it.tag}, ${formatter.format(it.id.timeStamp)})\n")
+                        this.append("${it.id.value} — (${it.tag}, ${formatter.format(it.id.timeStamp)})\n")
                     }
                 }
         }
         testChannel?.createMessage {
-            content = "Log"
+            content = "${System.currentTimeMillis()}"
             addFile("log.txt", textLog.byteInputStream(Charset.defaultCharset()))
         }
         return@runBlocking
