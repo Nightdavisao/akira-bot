@@ -17,6 +17,7 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.ban
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
+import dev.kord.gateway.Intent
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
 import io.ktor.client.*
@@ -59,7 +60,8 @@ class AkiraBot(private val config: AkiraConfig) {
         val applicationId = Snowflake(config.applicationId)
         val client = Kord(config.token) {
             intents = Intents {
-                + Intents.all
+                + Intents.nonPrivileged
+                + Intent.GuildMembers
             }
         }
             .apply {
