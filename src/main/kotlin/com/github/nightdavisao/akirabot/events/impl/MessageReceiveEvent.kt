@@ -4,6 +4,7 @@ import com.github.nightdavisao.akirabot.AkiraMiscConfig
 import com.github.nightdavisao.akirabot.events.DiscordEvent
 import com.github.nightdavisao.akirabot.utils.emote.Emotes
 import dev.kord.common.Color
+import dev.kord.common.entity.Permission
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
@@ -19,7 +20,9 @@ class MessageReceiveEvent(private val client: Kord,
 
     override suspend fun executes(event: MessageCreateEvent) {
         val channel = event.message.channel
-        val guild = event.getGuild()
+        // TODO: move to config file
+        val communityGuild = client.getGuild(Snowflake(297732013006389252L))
+        val supportGuild = client.getGuild(Snowflake(420626099257475072L))
 
         if (channel.id.value == config.reportChannelId && event.message.author?.id?.value == config.helperId) {
             val embed = event.message.embeds.firstOrNull()
@@ -33,7 +36,8 @@ class MessageReceiveEvent(private val client: Kord,
                 if (reportedID != null) {
                     val user = client.getUser(Snowflake(reportedID))
                     if (user != null) {
-                        val member = guild!!.getMemberOrNull(user.id)
+                        val communityMember = communityGuild!!.getMemberOrNull(user.id)
+                        val supportMember = supportGuild!!.getMemberOrNull(user.id)
                         val metadata = event.message.id.asString
 
                         val message = channel.createMessage {
@@ -41,12 +45,29 @@ class MessageReceiveEvent(private val client: Kord,
                             embed {
                                 description = buildString {
                                     append("**Usuário denunciado**: `${user.tag}` (${user.id.asString})\n")
-                                    append("**Snowflake (data)**: ${formatter.format(user.id.timeStamp)}")
+                                    append("**Snowflake (data)**: ${formatter.format(user.id.timeStamp)}\n")
 
-                                    if (member != null) {
-                                        append("\nEsse usuário está no Apartamento.")
-                                    } else {
-                                        append("\nEsse usuário não está no Apartamento!")
+                                    if (communityMember != null && supportMember != null) {
+                                        append("Esse usuário está no Apartamento e no servidor de suporte.\n")
+                                    } else if (communityMember != null && supportMember == null) {
+                                        append("Esse usuário está no servidor de suporte.\n")
+                                    } else if (supportMember != null && communityMember == null) {
+                                        append("Esse usuário está no Apartamento.\n")
+                                    }
+
+                                    if (communityMember != null) {
+                                        if (communityGuild.getMember(client.selfId)
+                                            .getPermissions()
+                                            .contains(Permission.BanMembers)) {
+                                            communityGuild.getBanOrNull(communityMember.id)?.let {
+                                                val author = it.user.asUserOrNull()
+
+                                                append("\nBanido do Aparatamento pelo o motivo: ")
+                                                append("`${it.reason}`")
+                                                if (author != null)
+                                                    append("— `${author.tag}`")
+                                            }
+                                        }
                                     }
                                 }
                                 color = Color(255, 192, 203)
